@@ -1,0 +1,21 @@
+﻿role,departement,politique,Acces
+Directeur Partenaires RH,RH,Gestion Employes,W
+Directeur financier,FINANCES,Donnees Financieres,R
+Charg?s de Projets,RD,Analyse Donnees,R
+D?veloppeurs,RD,Analyse Donnees,W
+Directeurs de Comptes,VENTESMKT,Donnees Commerciales,R
+Repr?sentants aux Ventes,FINANCES,Donnees Financieres,R
+Directeurs Marketing,VENTESMKT,Activites Marketing,W
+Sp?cialistes Marketing,VENTESMKT,Activites Marketing,W
+Designers,VENTESMKT,Donnees Commerciales,R
+Responsables des Relations M?dia,VENTESMKT,Donnees Commerciales,R
+Gestionnaire du Succ?s Client,SERVICES,Service client,W
+Repr?sentant des Services Clients,SERVICES,Service client,W
+Sp?cialistes Supply Chain,PROC,Gestion Stocks,W
+Sp?cialistes Logistique,PROC,Gestion Stocks,W
+Sp?cialistes Procurement,PROC,Gestion Achats,W
+Sp?cialistes Inventaire,PROC,Gestion Achats,W
+Sys Admins,TI,Administration Systeme,F
+Analystes Technologiques en Infrastructure,TI,Administration Systeme,F
+DBA,TI,Gestion bases de donnees,F
+Sp?cialistes en Conformit?,LEGAL,Conformite audit,R
