@@ -1,0 +1,139 @@
+# Importation les modules nécessaires pour travailler avec Active Directory
+
+Import-Module ActiveDirectory
+ 
+# Importation des données depuis le fichier CSV
+
+$csv = "rbac.csv"
+
+$data = Import-Csv -Path $csv
+ 
+# Fonction de normalisation du titre de rôle (Update-Title)
+
+function Update-Title {
+
+    param ([string]$inputString)
+ 
+    $words = $inputString -split '\s+'  # Sépareration par espaces
+
+    $normalizedSubstrings = @("Met")  # Initialisation avec un préfixe "Met"
+ 
+    foreach ($word in $words) {
+
+        $substring = $word.Substring(0, [Math]::Min(5, $word.Length))  # Prendre les 5 premiers caractères
+
+        $normalizedSubstrings += $substring
+
+    }
+ 
+    $normalizedString = $normalizedSubstrings -join '-'  # Joindre avec des tirets
+
+    return $normalizedString
+
+}
+ 
+# Fonction de normalisation de la politique
+
+function Update-Policy {
+
+    param([string]$object, [string]$access)
+ 
+    $updatedObject = $object.ToLower() -replace '\s', '-'  # Mettons en minuscules et remplacer les espaces par des tirets
+
+    $updatedAcces = $access.ToLower()  # Mettons en minuscules
+
+    $policy = "pol"
+
+    $policyName = ($policy,$updatedObject,$updatedAcces -join "-").TrimEnd('-')  # Construire le nom de la politique
+ 
+    return $policyName
+
+}
+ 
+# Boucle pour traiter chaque ligne du fichier CSV
+
+foreach ($row in $data) {
+
+    # Récupérons les valeurs du CSV
+
+    $title = $row.role
+
+    $dept = $row.departement
+
+    $politique = $row.politique
+
+    $acces = $row.acces
+ 
+    # Normalisation des titres de rôle
+
+    $normalizedTitle = Update-Title($title)
+ 
+    # Normalisation du nom de la politique 
+
+    $policyName = Update-Policy($politique,$acces)
+ 
+    # Définition des chemins d'accès
+
+    $adPath = "OU=GROUP,OU=$dept,OU=MEDISOLVE,DC=SF,DC=LOCAL"  # OU pour les groupes de rôles
+
+    $policyPath = "OU=POLICIES,DC=SF,DC=LOCAL"   # OU pour les politiques
+ 
+    # Logique pour la création du groupe de rôle métier
+
+    if (-not (Get-ADGroup -Filter {Name -eq $title})) {
+ 
+        New-ADGroup -Name $title -SamAccountName $normalizedTitle -GroupScope Global -GroupCategory Security -Path $adPath
+ 
+        Write-Host "Groupe '$title' cree dans departement $dept."
+
+    } else {
+
+        Write-Host "Groupe '$title' existe."
+
+    }
+ 
+    # Logique pour la création de la politique
+
+    if (-not (Get-ADGroup -Filter {Name -eq $policyName})) {
+
+        try {
+
+            New-ADGroup -Name $policyName -GroupScope DomainLocal -GroupCategory Security -Path $policyPath
+
+            Write-Host "Groupe '$policyName' cree."
+
+        } catch {
+
+            Write-Host "Erreur dans la creation de '$policyName': $_"
+
+        } 
+
+    } else {
+
+        Write-Host "Groupe '$policyName' existe."
+
+    }
+ 
+    # Logique pour ajouter le rôle en tant que membre de la politique
+
+    $groupRole = Get-ADGroup -Filter {Name -eq $normalizedTitle}
+
+    try { 
+
+        if($groupRole) {
+
+            Add-ADGroupMember -Identity $policyName -Members $groupRole -ErrorAction Stop
+
+            Write-Host "$groupRole ajouté au groupe $policyName avec succès."
+
+        }
+
+    } catch {
+
+        Write-Host "Erreur dans l'ajout au groupe '$policyName': $_"
+
+    }
+
+}
+
+ 
